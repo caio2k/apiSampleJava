@@ -1,0 +1,43 @@
+version: 2
+jobs:
+  docker-image-build:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          name: "Build"
+          command: |
+            docker build -t caio2k/apisamplejava:0.1-${CIRCLE_BRANCH}-${CIRCLE_SHA1} .
+      - run:
+          name: "Push"
+          command: |
+            docker tag caio2k/apisamplejava:0.1-${CIRCLE_BRANCH}-${CIRCLE_SHA1} caio2k/apisamplejava:0.1-${CIRCLE_BRANCH}
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push caio2k/apisamplejava:0.1-${CIRCLE_BRANCH}-${CIRCLE_SHA1}
+            docker push caio2k/apisamplejava:0.1-${CIRCLE_BRANCH}
+  docker-image-promote:
+    machine: true
+    environment:
+    steps:
+      - run:
+          name: "Promote"
+          command: |
+            docker pull caio2k/apisamplejava:0.1-${CIRCLE_BRANCH}
+            docker tag caio2k/apisamplejava:0.1 caio2k/apisamplejava:0.1-${CIRCLE_BRANCH}
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push caio2k/apisamplejava:0.1
+
+workflows:
+  version: 2
+  docker-image:
+    jobs:
+      - docker-image-build:
+          filters:
+            branches:
+              ignore:
+                - master
+      - docker-image-promote:
+          filters:
+            branches:
+              only:
+                - master
