@@ -1,0 +1,46 @@
+version: 2
+jobs:
+  docker-image-build:
+    environment:
+      FULL_TAG: 0.1-${CIRCLE_BRANCH}-${CIRCLE_SHA1}
+      LATEST_TAG: 0.1-${CIRCLE_BRANCH}
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run:
+          name: "Build"
+          command: |
+            docker build -t caio2k/apiSampleJava:$FULL_TAG .
+      - run:
+          name: "Push"
+          command: |
+            docker tag caio2k/apiSampleJava:$FULL_TAG caio2k/apiSampleJava:$LATEST_TAG
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push caio2k/apiSampleJava:$FULL_TAG caio2k/apiSampleJava:$LATEST_TAG
+  docker-image-promote:
+    environment:
+      LATEST_TAG: 0.1-develop
+      PROMOTED_TAG: 0.1
+    steps:
+      - run:
+          name: "Promote"
+          command: |
+            docker pull caio2k/apiSampleJava:$LATEST_TAG
+            docker tag caio2k/apiSampleJava:$PROMOTED_TAG caio2k/apiSampleJava:$LATEST_TAG
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push caio2k/apiSampleJava:$PROMOTED_TAG
+
+workflows:
+  version: 2
+  docker-image:
+    jobs:
+      - docker-image-build:
+          filters:
+            branches:
+              ignore:
+                - master
+      - docker-image-promote:
+          filters:
+            branches:
+              only:
+                - master
