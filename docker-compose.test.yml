@@ -1,0 +1,10 @@
+version: '2'
+services:
+  sut:
+    build: ./integration-tests/
+    links:
+      - web
+  web:
+    build: .
+    expose: 
+      - '8080'
