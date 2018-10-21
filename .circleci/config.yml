@@ -40,6 +40,7 @@ jobs:
             git config user.name "GitOps Bot"
             git checkout staging
             echo "FROM caio2k/apisamplejava:${CIRCLE_TAG}" > Dockerfile
+            git add Dockerfile
             git commit --allow-empty -m "Update deployment Dockerfile to version ${CIRCLE_TAG}"
             git push -q https://${GITHUB_TOKEN}@github.com/caio2k/apiSampleJava-gitops.git staging
 
