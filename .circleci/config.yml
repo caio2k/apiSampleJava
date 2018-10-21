@@ -23,9 +23,9 @@ jobs:
           name: "Promote"
           command: |
             docker pull caio2k/apisamplejava:master
-            docker tag caio2k/apisamplejava:${VERSION} caio2k/apisamplejava:master
+            docker tag caio2k/apisamplejava:master caio2k/apisamplejava:${CIRCLE_TAG}
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push caio2k/apisamplejava:${VERSION}
+            docker push caio2k/apisamplejava:${CIRCLE_TAG}
       - run:
           name: "Clone gitops repository"
           working_directory: ~/workdir
@@ -35,12 +35,12 @@ jobs:
             git config user.email "caio2k@circleci.com"
             git config user.name "GitOps Bot"
       - deploy:
-          name: "Update gitops repository with ${VERSION}"
+          name: "Update gitops repository with ${CIRCLE_TAG}"
           working_directory: ~/workdir/apiSampleJava-gitops
           command: |
             git checkout staging
-            echo "FROM caio2k/apisamplejava:${VERSION}" > Dockerfile
-            git commit --allow-empty -m "Update deployment Dockerfile to version ${VERSION}"
+            echo "FROM caio2k/apisamplejava:${CIRCLE_TAG}" > Dockerfile
+            git commit --allow-empty -m "Update deployment Dockerfile to version ${CIRCLE_TAG}"
             git push -q https://${GITHUB_TOKEN}@github.com/caio2k/apiSampleJava-gitops.git staging
 
 workflows:
@@ -50,7 +50,7 @@ workflows:
       - docker-image-build:
           filters:
             tags:
-              only: /^\d+\.\d+\.\d+$/
+              ignore: /^\d+\.\d+\.\d+$/
       - docker-image-promote:
           filters:
             branches:
