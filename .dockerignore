@@ -1,0 +1,4 @@
+.circleci/*
+integration-tests/*
+README.md
+LICENSE
