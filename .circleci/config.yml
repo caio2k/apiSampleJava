@@ -30,7 +30,7 @@ jobs:
           name: "Clone gitops repository"
           working_directory: ~/workdir
           command: |
-            wget https://github.com/github/hub/releases/download/v2.5.1/hub-linux-amd64-2.5.1.tgz
+            git clone https://${GITHUB_TOKEN}@github.com/caio2k/apiSampleJava-gitops.git
       - deploy:
           name: "Update gitops repository with ${CIRCLE_TAG}"
           working_directory: ~/workdir/apiSampleJava-gitops
