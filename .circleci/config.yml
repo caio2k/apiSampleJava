@@ -22,15 +22,15 @@ jobs:
       - run:
           name: "Promote"
           command: |
-            docker pull caio2k/apisamplejava:master
-            docker tag caio2k/apisamplejava:master caio2k/apisamplejava:${CIRCLE_TAG}
+            docker pull caio2k/apisamplejava:master-${CIRCLE_SHA1}
+            docker tag caio2k/apisamplejava:master-${CIRCLE_SHA1} caio2k/apisamplejava:${CIRCLE_TAG}
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push caio2k/apisamplejava:${CIRCLE_TAG}
       - run:
           name: "Clone gitops repository"
           working_directory: ~/workdir
           command: |
-            git clone https://${GITHUB_TOKEN}@github.com/caio2k/apiSampleJava-gitops.git
+            wget https://github.com/github/hub/releases/download/v2.5.1/hub-linux-amd64-2.5.1.tgz
       - deploy:
           name: "Update gitops repository with ${CIRCLE_TAG}"
           working_directory: ~/workdir/apiSampleJava-gitops
@@ -39,11 +39,12 @@ jobs:
             git config user.email "caio2k@circleci.com"
             git config user.name "GitOps Bot"
             git checkout staging
-            echo "FROM caio2k/apisamplejava:${CIRCLE_TAG}" > Dockerfile
+            git checkout -b release/${CIRCLE_TAG}
+            sed -i "s@FROM caio2k/apisamplejava:.*@FROM caio2k/apisamplejava:${CIRCLE_TAG}@g" Dockerfile
             git add Dockerfile
             git commit --allow-empty -m "Update deployment Dockerfile to version ${CIRCLE_TAG}"
-            git push -q https://${GITHUB_TOKEN}@github.com/caio2k/apiSampleJava-gitops.git staging
-
+            git push -q --set-upstream origin release/${CIRCLE_TAG}
+            curl -H "Content-Type: application/json" -X POST -d "{\"title\": \"Released version ${CIRCLE_TAG}\", \"body\": \"Merge new version in staging\", \"head\": \"release/${CIRCLE_TAG}\", \"base\": \"staging\" }" https://api.github.com/repos/caio2k/apiSampleJava-gitops/pulls?access_token=$GITHUB_TOKEN
 workflows:
   version: 2
   docker-image:

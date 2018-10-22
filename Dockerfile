@@ -8,4 +8,4 @@ RUN mvn clean package
 FROM openjdk:8-jre-alpine
 COPY --from=build-env /java/target/*.jar /app.jar
 EXPOSE 8080
-CMD java -jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]
